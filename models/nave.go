@@ -26,7 +26,7 @@ type Disparo struct {
 }
 
 
-func NewNave(sprite, disparoSprite *pixel.Sprite, velocidad, shootInterval float64) *Nave {
+func NuevaNave(sprite, disparoSprite *pixel.Sprite, velocidad, shootInterval float64) *Nave {
 	return &Nave{
 		sprite:        sprite,
 		pos:           pixel.ZV,
@@ -38,7 +38,7 @@ func NewNave(sprite, disparoSprite *pixel.Sprite, velocidad, shootInterval float
 	}
 }
 
-func (n *Nave) Update(dt float64, win *pixelgl.Window) {
+func (n *Nave) Actualizar(dt float64, win *pixelgl.Window) {
 	if win.Pressed(pixelgl.KeyLeft) {
 		n.vel.X = -n.velocidad
 	} else if win.Pressed(pixelgl.KeyRight) {
@@ -60,7 +60,7 @@ func (n *Nave) Update(dt float64, win *pixelgl.Window) {
 	}
 }
 
-func (n *Nave) Draw(win *pixelgl.Window) {
+func (n *Nave) Pintar(win *pixelgl.Window) {
 	n.sprite.Draw(win, pixel.IM.Moved(n.pos))
 
 	// Dibujar los disparos

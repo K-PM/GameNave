@@ -21,7 +21,7 @@ type Vida struct {
 }
 
 // NewVida crea una nueva instancia de Vida con 5 vidas iniciales
-func NewVida() (*Vida, error) {
+func NuevaVida() (*Vida, error) {
 	// Cargar la imagen de vida desde un archivo ("vida.png")
 	vidaImg, err := loadPicture("./assets/vida.png")
 	if err != nil {
@@ -47,7 +47,7 @@ func NewVida() (*Vida, error) {
 }
 
 // Draw dibuja las vidas en la ventana
-func (v *Vida) Draw(win *pixelgl.Window) {
+func (v *Vida) Pintar(win *pixelgl.Window) {
 	for i := 0; i < v.vidas; i++ {
 		var vidaToDraw *pixel.Sprite
 		if i < v.vidasPerdidas {

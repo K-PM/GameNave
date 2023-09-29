@@ -26,7 +26,7 @@ type Enemigo struct {
 }
 
 // Inicializa y devuelve un nuevo enemigo
-func NewEnemy(sprite *pixel.Sprite, initialPosition pixel.Vec) *Enemigo {
+func NuevoEnemigo(sprite *pixel.Sprite, initialPosition pixel.Vec) *Enemigo {
     return &Enemigo{
         sprite: sprite,
         pos:    initialPosition,
@@ -36,14 +36,14 @@ func NewEnemy(sprite *pixel.Sprite, initialPosition pixel.Vec) *Enemigo {
 }
 
 // Función para dibujar el enemigo en la ventana
-func (e *Enemigo) Draw(win *pixelgl.Window) {
+func (e *Enemigo) Pintar(win *pixelgl.Window) {
     if !e.hit {
         e.sprite.Draw(win, pixel.IM.Moved(e.pos))
     }
 }
 
 // Función para actualizar la posición del enemigo en función del tiempo
-func (e *Enemigo) Update(dt float64) {
+func (e *Enemigo) Actualizar(dt float64) {
     // Mueve el enemigo hacia abajo
     e.pos.Y -= e.speed * dt
 }
@@ -63,7 +63,7 @@ func (e *Enemigo) Golpeado(pos pixel.Vec) bool {
 }
 
 // Agrega el método Reset para reiniciar la posición del enemigo
-func (e *Enemigo) Reset() {
+func (e *Enemigo) Resetear() {
 	// Define aquí la posición inicial del enemigo cuando toque el borde inferior
 	e.pos = pixel.V(minEnemyX+randGen.Float64()*(maxEnemyX-minEnemyX), 700) // Coordenada X aleatoria
 	e.hit = false
