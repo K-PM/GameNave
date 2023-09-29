@@ -10,14 +10,16 @@ import (
     "os"
     "time"
     "math/rand"
-	
     "github.com/faiface/pixel/pixelgl"
-
     "github.com/faiface/pixel"
     "github.com/faiface/pixel/text"
     "golang.org/x/image/font/basicfont"
 	"sync" // goroutines- hilos.
+    "github.com/faiface/beep"
+    "github.com/faiface/beep/mp3"
+    "github.com/faiface/beep/speaker"
 )
+
 
 var (
     lastEnemyTime       = time.Now()
@@ -26,19 +28,46 @@ var (
     last                = time.Now()
     mutex               sync.Mutex
     tiempoTranscurridoCh = make(chan float64)
-    vidaMutex sync.Mutex
+    format   beep.Format
+    streamer beep.StreamSeeker
+    ctrl     *beep.Ctrl
 )
+
+func reproducirMusica() {
+    // Cargar el archivo de sonido de fondo
+    musicFile, err := os.Open("./assets/music.mp3")
+    if err != nil {
+        fmt.Println("Error al abrir el archivo de música:", err)
+        return
+    }
+    streamer, format, err = mp3.Decode(musicFile)
+    if err != nil {
+        fmt.Println("Error al decodificar el archivo de música:", err)
+        return
+    }
+   
+    // Configurar el speaker para el formato del sonido
+    err = speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
+    if err != nil {
+        fmt.Println("Error al inicializar el speaker:", err)
+        return
+    }
+
+    // Reproducir el sonido en bucle
+    ctrl = &beep.Ctrl{Streamer: beep.Loop(-1, streamer)}
+    speaker.Play(ctrl)
+}
 
 func Setup(win *pixelgl.Window) {
 	fondoSprite, naveSprite, disparoSprite, enemySprite := cargarImagenesYSprites()
 	vida, nave := crearVidaYNave(naveSprite, disparoSprite)
 	tiempoTranscurrido := 0.0
 
-	// Agregar goroutines concurrentes para gestionar enemigos, disparos y tiempo.
-	go gestionarEnemigos(win, nave, enemySprite)
+	
+    go reproducirMusica()
+    go gestionarEnemigos(win, nave, enemySprite)
 	go gestionarTiempo(win, tiempoTranscurrido, vida)
-    go ActualizarVida(enemies, vida)
-
+    
 	for !win.Closed() {
 		fondoSprite.Draw(win, pixel.IM.Moved(win.Bounds().Center()))
 		dt := time.Since(last).Seconds()
@@ -46,7 +75,7 @@ func Setup(win *pixelgl.Window) {
 		tiempoTranscurrido += dt
         tiempoTranscurridoCh <- tiempoTranscurrido
 
-		ActualizarVida( enemies, vida)
+		ActualizarVida( win,enemies, vida)
 		actualizarYDibujarNave(nave, dt, win, tiempoTranscurrido, vida)
 
 		win.Update()
@@ -62,9 +91,17 @@ func actualizarYDibujarNave(nave *nave.Nave, dt float64, win *pixelgl.Window, ti
     nave.Disparos = nave.ActualizarDisparos(nave.Disparos, dt, win)
 	nave.Update(dt, win)
 	nave.Draw(win)
-    vida.Draw(win)
 }
 
+func ActualizarVida(win *pixelgl.Window, enemies []*enemigo.Enemigo, vida *models.Vida) {
+	vida.Draw(win)
+    for _, enemy := range enemies {
+		if enemy.Pos().Y < 0 {
+			vida.PerderVida()
+			enemy.Reset()
+		}
+	}
+}
 
 func crearVidaYNave(naveSprite, disparoSprite *pixel.Sprite) (*models.Vida, *nave.Nave) {
     // Crear las vidas del jugador
@@ -181,26 +218,6 @@ func gestionarEnemigos(win *pixelgl.Window, nave *nave.Nave, enemySprite *pixel.
         enemies = updatedEnemies
 
         mutex.Unlock()
-    }
-}
-
-func ActualizarVida(enemies []*enemigo.Enemigo, vida *models.Vida) {
-    for {
-        for _, enemy := range enemies {
-            if enemy.Pos().Y < 0 {
-                // Bloquea el acceso a las vidas para evitar conflictos de concurrencia
-                vidaMutex.Lock()
-
-                // Actualiza las vidas y resetea el enemigo
-                vida.PerderVida()
-                enemy.Reset()
-
-                // Libera el bloqueo de las vidas
-                vidaMutex.Unlock()
-            }
-        }
-        // Agrega una pausa para controlar la frecuencia de verificación
-        time.Sleep(time.Millisecond * 100)
     }
 }
 
