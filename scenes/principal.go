@@ -2,6 +2,7 @@ package scenes
 
 import (
 	"time"
+    enemigo "Juego2/models"
     utils "Juego2/utils"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
@@ -9,6 +10,8 @@ import (
 
 var (
 	last                 = time.Now()
+    enemies []*enemigo.Enemigo
+
 )
 
 func Setup(win *pixelgl.Window) {
@@ -20,7 +23,7 @@ func Setup(win *pixelgl.Window) {
 
     go utils.ReproducirMusica()
     go utils.GestionarEnemigos(win, nave, enemySprite)
-    go utils.GestionarTiempo(win, tiempoTranscurrido, vida)
+    go utils.GestionarTiempo(win, tiempoTranscurridoCh, vida)
 
     for !win.Closed() {
         fondoSprite.Draw(win, pixel.IM.Moved(win.Bounds().Center()))
